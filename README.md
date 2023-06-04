@@ -42,13 +42,13 @@ This repository builds off of the [code](https://github.com/google-research/goog
 
 You may cite us at
 
-`
+```
 @inproceedings{Lobel2023Flipping,
 title={Flipping Coins to Estimate Pseudocounts for Exploration in Reinforcement Learning},
 author={Sam Lobel and Akhil Bagaria and George Konidaris},
 booktitle={International Conference on Machine Learning},
 year={2023},
 }
-
+```
 (URL to come!)
 
