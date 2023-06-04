@@ -1,0 +1,55 @@
+import dopamine.replay_memory.prioritized_replay_buffer
+import bonus_based_exploration.intrinsic_motivation.intrinsic_rainbow_agent
+import bonus_based_exploration.intrinsic_motivation.intrinsic_rewards
+import bonus_based_exploration.run_experiment
+import gin.tf.external_configurables
+
+create_exploration_agent.agent_name = 'rainbow_pixelcnn'
+
+PixelCNNRainbowAgent.num_atoms = 51
+PixelCNNRainbowAgent.vmax = 10.
+PixelCNNRainbowAgent.gamma = 0.99
+PixelCNNRainbowAgent.update_horizon = 3
+PixelCNNRainbowAgent.min_replay_history = 1000  # agent steps
+PixelCNNRainbowAgent.update_period = 1
+PixelCNNRainbowAgent.target_update_period = 500  # agent steps
+PixelCNNRainbowAgent.epsilon_train = 0.001
+PixelCNNRainbowAgent.epsilon_eval = 0.001
+PixelCNNRainbowAgent.epsilon_decay_period = 1000  # agent steps
+PixelCNNRainbowAgent.tf_device = '/gpu:0'  # use '/cpu:*' for non-GPU version
+PixelCNNRainbowAgent.replay_scheme = 'prioritized'
+PixelCNNRainbowAgent.optimizer = @tf.train.AdamOptimizer()
+PixelCNNRainbowAgent.stack_size = 1
+
+# Note these parameters are different from C51's.
+tf.train.AdamOptimizer.learning_rate = 1.25e-4
+tf.train.AdamOptimizer.epsilon = 0.00015
+
+# Parameters for the agent density model
+_network_template.num_layers = 2
+_network_template.hidden_units = 16
+PixelCNNIntrinsicReward.reward_scale = 0.5
+PixelCNNIntrinsicReward.ipd_scale = 0.5
+PixelCNNIntrinsicReward.observation_shape = (84, 84)
+PixelCNNIntrinsicReward.resize_shape = (42, 42) # Note: this is different than CoinFlip
+PixelCNNIntrinsicReward.tf_device = '/gpu:0'
+PixelCNNIntrinsicReward.optimizer = @tf.train.RMSPropOptimizer()
+
+tf.train.RMSPropOptimizer.learning_rate = 0.0001
+tf.train.RMSPropOptimizer.momentum = 0.9
+tf.train.RMSPropOptimizer.epsilon = 0.0001
+
+# Env config
+create_exploration_runner.env_type = 'gridworld'
+GridWorldEnv.random_goal = False
+GridWorldEnv.randomize_starts = False
+GridWorldEnv.size = 42
+
+ExplorationRunner.num_iterations = 250
+ExplorationRunner.training_steps = 1000  # agent steps
+ExplorationRunner.evaluation_steps = 1000  # agent steps
+ExplorationRunner.max_steps_per_episode = 150  # agent steps
+# ExplorationRunner.checkpoint_every = -1
+
+WrappedPrioritizedReplayBuffer.replay_capacity = 1000000
+WrappedPrioritizedReplayBuffer.batch_size = 32

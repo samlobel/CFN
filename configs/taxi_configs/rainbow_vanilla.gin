@@ -1,0 +1,47 @@
+import dopamine.replay_memory.circular_replay_buffer
+import bonus_based_exploration.intrinsic_motivation.intrinsic_dqn_agent
+import bonus_based_exploration.intrinsic_motivation.intrinsic_rewards
+import bonus_based_exploration.run_experiment
+import gin.tf.external_configurables
+
+create_exploration_agent.agent_name = 'rainbow_rnd'
+
+RNDRainbowAgent.num_atoms = 51
+RNDRainbowAgent.vmax = 10.
+RNDRainbowAgent.gamma = 0.99
+RNDRainbowAgent.update_horizon = 3
+RNDRainbowAgent.min_replay_history = 1000  # agent steps
+RNDRainbowAgent.update_period = 1
+RNDRainbowAgent.target_update_period = 500  # agent steps
+RNDRainbowAgent.epsilon_train = 0.001
+RNDRainbowAgent.epsilon_eval = 0.001
+RNDRainbowAgent.epsilon_decay_period = 1000  # agent steps
+RNDRainbowAgent.tf_device = '/gpu:0'  # use '/cpu:*' for non-GPU version
+RNDRainbowAgent.replay_scheme = 'prioritized'
+RNDRainbowAgent.optimizer = @agent/tf.train.AdamOptimizer()
+RainbowAgent.stack_size = 1
+
+# Note these parameters are different from C51's.
+agent/tf.train.AdamOptimizer.learning_rate = 1.25e-4
+agent/tf.train.AdamOptimizer.epsilon = 0.00015
+
+# Parameters for the intrinsic motivation method
+RNDRainbowAgent.clip_reward = False
+RNDIntrinsicReward.reward_scale = 0.0 # same as RND except 0 rewardscale. Fine for now.
+RNDIntrinsicReward.optimizer = @tf.train.AdamOptimizer()
+tf.train.AdamOptimizer.learning_rate = 0.0001
+tf.train.AdamOptimizer.epsilon = 0.00001
+
+# Env config
+create_exploration_runner.env_type = 'taxi'
+
+ExplorationRunner.num_iterations = 400
+ExplorationRunner.training_steps = 1000  # agent steps
+ExplorationRunner.evaluation_steps = 1000  # agent steps
+ExplorationRunner.max_steps_per_episode = 50  # agent steps
+ExplorationRunner.checkpoint_every = -1
+write_dict_to_file.skip = False
+log_custom_quantities.skip = False
+
+WrappedReplayBuffer.replay_capacity = 1000000
+WrappedReplayBuffer.batch_size = 32

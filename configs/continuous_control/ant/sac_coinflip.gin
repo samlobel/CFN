@@ -1,0 +1,67 @@
+# Hyperparameters follow those specified in Table 1 of Appendix D in:
+#   "Soft Actor-Critic Algorithms and Applications"
+#   by Tuomas Haarnoja et al.
+#   https://arxiv.org/abs/1812.05905
+import bonus_based_exploration.cc_intrinsic_motivation.run_experiment
+# import dopamine.continuous_domains.run_experiment
+import dopamine.discrete_domains.gym_lib
+import bonus_based_exploration.cc_intrinsic_motivation.intrinsic_SAC
+import bonus_based_exploration.intrinsic_motivation.intrinsic_rewards
+import dopamine.jax.agents.dqn.dqn_agent
+import dopamine.jax.continuous_networks
+import dopamine.replay_memory.circular_replay_buffer
+import gin.tf.external_configurables
+
+CoinFlipSACAgent.reward_scale_factor = 0.1
+CoinFlipSACAgent.network = @continuous_networks.SACNetwork
+CoinFlipSACAgent.num_layers = 2
+CoinFlipSACAgent.hidden_units = 256
+CoinFlipSACAgent.gamma = 0.99
+CoinFlipSACAgent.update_horizon = 3
+CoinFlipSACAgent.min_replay_history = 10000  # agent steps
+CoinFlipSACAgent.update_period = 1
+CoinFlipSACAgent.target_update_type = 'soft'
+CoinFlipSACAgent.target_smoothing_coefficient = 0.005
+CoinFlipSACAgent.target_entropy = None  # Defaults to -num_action_dims/2
+CoinFlipSACAgent.optimizer = 'adam'
+CoinFlipSACAgent.seed = None  # Seed with the current time
+# CoinFlipSACAgent.observation_dtype = %base_sac_agent.STATE_DTYPE
+CoinFlipSACAgent.observation_dtype = %sac_agent.STATE_DTYPE
+create_optimizer.learning_rate = 3.0e-4
+create_optimizer.beta1 = 0.9
+create_optimizer.beta2 = 0.999
+create_optimizer.eps = 1.0e-8
+
+create_continuous_exploration_runner.env_type = "ant_maze"
+
+create_gym_environment.environment_name = 'antmaze-umaze' # "antmaze-umaze-v0", "antmaze-medium-play-v0", "antmaze-large-play-v0"
+create_gym_environment.version = 'v0'
+create_continuous_agent.agent_name = 'sac_coinflip'
+ContinuousRunner.num_iterations = 400
+ContinuousRunner.training_steps = 10000
+ContinuousRunner.evaluation_steps = 10000  # agent steps
+ContinuousRunner.max_steps_per_episode = 1000
+ContinuousRunner.clip_rewards = False
+
+# Parameters for the agent density model
+_coin_flip_network_template.n_conv_layers = 3 # 0, 1, 2, or 3. 3 is RND architecture, 0 is flattened linear
+CoinFlipCounterIntrinsicReward.reward_scale = 0.01 # untested
+CoinFlipCounterIntrinsicReward.ipd_scale = 0.1
+CoinFlipCounterIntrinsicReward.tf_device = '/gpu:0'
+CoinFlipCounterIntrinsicReward.optimizer = @tf.train.RMSPropOptimizer()
+CoinFlipCounterIntrinsicReward.intrinsic_replay_start_size = 1000
+CoinFlipCounterIntrinsicReward.intrinsic_replay_reward_add_start_size = 1000
+CoinFlipCounterIntrinsicReward.batch_size = 1024
+CoinFlipCounterIntrinsicReward.update_period = 1
+CoinFlipCounterIntrinsicReward.output_dimensions = 20
+CoinFlipCounterIntrinsicReward.use_final_tanh = False
+CoinFlipCounterIntrinsicReward.intrinsic_replay_buffer_size = 1000000
+
+
+tf.train.RMSPropOptimizer.learning_rate = 0.001
+tf.train.RMSPropOptimizer.momentum = 0.9
+tf.train.RMSPropOptimizer.epsilon = 0.0001
+
+circular_replay_buffer.OutOfGraphReplayBuffer.replay_capacity = 1000000
+circular_replay_buffer.OutOfGraphReplayBuffer.batch_size = 256
+

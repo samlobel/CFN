@@ -1,0 +1,47 @@
+# Hyperparameters follow those specified in Table 1 of Appendix D in:
+#   "Soft Actor-Critic Algorithms and Applications"
+#   by Tuomas Haarnoja et al.
+#   https://arxiv.org/abs/1812.05905
+import bonus_based_exploration.cc_intrinsic_motivation.run_experiment
+# import dopamine.continuous_domains.run_experiment
+import dopamine.discrete_domains.gym_lib
+import dopamine.jax.agents.sac.sac_agent
+import dopamine.jax.agents.dqn.dqn_agent
+import dopamine.jax.continuous_networks
+import dopamine.replay_memory.circular_replay_buffer
+import bonus_based_exploration.wrappers
+
+SACAgent.reward_scale_factor = 30.0
+SACAgent.network = @continuous_networks.SACNetwork
+SACAgent.num_layers = 2
+SACAgent.hidden_units = 256
+SACAgent.gamma = 0.99
+SACAgent.update_horizon = 1
+SACAgent.min_replay_history = 10000  # agent steps
+SACAgent.update_period = 1
+SACAgent.target_update_type = 'soft'
+SACAgent.target_smoothing_coefficient = 0.005
+SACAgent.target_entropy = None  # Defaults to -num_action_dims/2
+SACAgent.optimizer = 'adam'
+SACAgent.seed = None  # Seed with the current time
+# SACAgent.observation_dtype = %base_sac_agent.STATE_DTYPE
+SACAgent.observation_dtype = %sac_agent.STATE_DTYPE
+create_optimizer.learning_rate = 1.0e-4
+create_optimizer.beta1 = 0.9
+create_optimizer.beta2 = 0.999
+create_optimizer.eps = 1.0e-8
+
+create_continuous_exploration_runner.env_type = "relocate"
+
+create_gym_environment.environment_name = "relocate"
+create_gym_environment.version = 'v0'
+create_continuous_agent.agent_name = 'sac'
+ContinuousRunner.num_iterations = 500
+ContinuousRunner.training_steps = 10000
+ContinuousRunner.evaluation_steps = 10000  # agent steps
+ContinuousRunner.max_steps_per_episode = 200
+ContinuousRunner.clip_rewards = False
+
+circular_replay_buffer.OutOfGraphReplayBuffer.replay_capacity = 1000000
+circular_replay_buffer.OutOfGraphReplayBuffer.batch_size = 256
+

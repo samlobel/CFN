@@ -1,0 +1,57 @@
+import dopamine.replay_memory.circular_replay_buffer
+import bonus_based_exploration.intrinsic_motivation.intrinsic_dqn_agent
+import bonus_based_exploration.intrinsic_motivation.intrinsic_rewards
+import bonus_based_exploration.run_experiment
+import gin.tf.external_configurables
+
+create_exploration_agent.agent_name = 'rainbow_coinflip'
+
+CoinFlipRainbowAgent.num_atoms = 51
+CoinFlipRainbowAgent.vmax = 10.
+CoinFlipRainbowAgent.gamma = 0.99
+CoinFlipRainbowAgent.update_horizon = 3
+CoinFlipRainbowAgent.min_replay_history = 1000  # agent steps
+CoinFlipRainbowAgent.update_period = 1
+CoinFlipRainbowAgent.target_update_period = 500  # agent steps
+CoinFlipRainbowAgent.epsilon_train = 0.001
+CoinFlipRainbowAgent.epsilon_eval = 0.001
+CoinFlipRainbowAgent.epsilon_decay_period = 1000  # agent steps
+CoinFlipRainbowAgent.tf_device = '/gpu:0'  # use '/cpu:*' for non-GPU version
+CoinFlipRainbowAgent.replay_scheme = 'prioritized'
+CoinFlipRainbowAgent.optimizer = @tf.train.AdamOptimizer()
+CoinFlipRainbowAgent.stack_size = 1
+
+# Note these parameters are different from C51's.
+tf.train.AdamOptimizer.learning_rate = 1.25e-4
+tf.train.AdamOptimizer.epsilon = 0.00015
+
+# Parameters for the agent density model
+_coin_flip_network_template.n_conv_layers = 3 # 0, 1, 2, or 3. 3 is RND architecture, 0 is flattened linear
+CoinFlipCounterIntrinsicReward.reward_scale = 0.01 # NOQA
+CoinFlipCounterIntrinsicReward.ipd_scale = 0.1
+CoinFlipCounterIntrinsicReward.observation_shape = (84, 84)
+CoinFlipCounterIntrinsicReward.resize_shape = (84, 84)
+CoinFlipCounterIntrinsicReward.tf_device = '/gpu:0'
+CoinFlipCounterIntrinsicReward.optimizer = @tf.train.RMSPropOptimizer()
+CoinFlipCounterIntrinsicReward.intrinsic_replay_start_size = 1000
+CoinFlipCounterIntrinsicReward.intrinsic_replay_reward_add_start_size = 1000
+CoinFlipCounterIntrinsicReward.intrinsic_replay_buffer_size = 400000
+CoinFlipCounterIntrinsicReward.batch_size = 1024
+CoinFlipCounterIntrinsicReward.output_dimensions = 20
+CoinFlipCounterIntrinsicReward.use_reward_normalization = True
+
+tf.train.RMSPropOptimizer.learning_rate = 0.0001
+tf.train.RMSPropOptimizer.momentum = 0.9
+tf.train.RMSPropOptimizer.epsilon = 0.0001
+
+# Env config
+create_exploration_runner.env_type = 'taxi'
+
+ExplorationRunner.num_iterations = 400
+ExplorationRunner.training_steps = 1000  # agent steps
+ExplorationRunner.evaluation_steps = 1000  # agent steps
+ExplorationRunner.max_steps_per_episode = 50  # agent steps
+ExplorationRunner.checkpoint_every = -1
+
+WrappedReplayBuffer.replay_capacity = 1000000
+WrappedReplayBuffer.batch_size = 32
