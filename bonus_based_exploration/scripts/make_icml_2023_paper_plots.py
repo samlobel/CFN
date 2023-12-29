@@ -189,7 +189,7 @@ def make_gridworld_true_vs_approx_3_subplots():
     plt.close()
     # plt.show()
 
-# PYTHONPATH=.. python -m scripts.make_icml_2023_paper_plots
+# python -m scripts.make_icml_2023_paper_plots
 if __name__ == '__main__':
     # make_monte_plot_final()
     # make_gridworld_results_curve()
